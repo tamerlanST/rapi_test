@@ -1,0 +1,4 @@
+*.csv
+*.txt
+!get_report_tables.eq.txt
+!update_report.eq.csv

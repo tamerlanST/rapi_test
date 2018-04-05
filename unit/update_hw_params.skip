@@ -1,0 +1,11 @@
+# #!/bin/bash
+# . ../lib.sh
+
+# #unit/update_hw_params
+# 	resp=`curl -s "$server?svc=unit/update_hw_params&params=\{\"hwId\":355,\"action\":\"check_config\"\}&sid=$sid"`
+# 	#echo $resp
+# 	mresp='{"error":0}'
+# 	#echo $mresp
+# 	if [ "$mresp" != "$resp" ];
+# 		then error "unit/update_hw_params"
+# 	fi

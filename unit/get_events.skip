@@ -1,0 +1,76 @@
+# check events library
+set events_ok [adf_library_loaded "adf_avl_events"]
+if {!$events_ok} {
+	set svc_error 7
+	return
+}
+# validate item id
+if {![$svc_params validate "{itemId: long, eventType: text, ivalType: int, ivalFrom: uint, ivalTo: uint}"]} {
+	set svc_error 4
+	return
+}
+# fetch item with desired ACL
+set item [avl_get_item [$svc_params get_text "itemId"] "ADF_ACL_ITEM_EXECUTE_REPORTS"]
+set pl [adf_cast_i_avl_events_plugin $item]
+if {$pl == "NULL"} {
+	set svc_error 7
+	return
+}
+set filter1 0
+if {[$svc_params validate "{filter1: long}"]} {
+	set filter1 [$svc_params get_text "filter1"]
+}
+set filter2 ""
+if {[$svc_params validate "{filter2: text}"]} {
+	set filter2 [$svc_params get_text "filter2"]
+}
+set measure 0
+set lang "en"
+set ren [adf_cast_i_avl_image_renderer [$wialon_session get_object "renderer"]]
+if {$ren != "NULL"} {
+	set measure [expr [$ren get_flags] & 0x3]
+	set lang [$ren get_lang]
+	
+}
+if {[$svc_params validate "{measure: uint}"]} {
+	set measure [$svc_params get_text "measure"]
+}
+if {[$svc_params validate "{lang: text}"]} {
+	set lang [$svc_params get_text "lang"]
+}
+set detalization 0x7
+if {[$svc_params validate "{detalization: uint}"]} {
+	set detalization [$svc_params get_text "detalization"]
+}
+# check events type
+if {[$svc_params get_text "ivalType"] == -1} {
+	$pl reset [$svc_params get_text "eventType"] 1
+	set svc_result "{}"	
+	set svc_error 0
+	return
+} elseif {[$svc_params get_text "ivalType"] == -2} {
+	$pl reset [$svc_params get_text "eventType"] 0
+	set svc_result "{}"	
+	set svc_error 0
+	return
+} elseif {[$svc_params get_text "ivalType"] == 0} {
+	# current state
+	set last_request_time 0
+	set type_name "[$svc_params get_text "eventType"]_[$svc_params get_text "itemId"]_${filter1}_${filter2}_$measure"
+	if {[$svc_params validate "{diffOnly: int}"] && [$svc_params get_text "diffOnly"] == "1"} {
+		set last_session_request [$wialon_session get_property $type_name]
+		if {$last_session_request != ""} {
+			set last_request_time $last_session_request
+		}
+		$wialon_session set_property $type_name [adf_get_curr_time]
+	} else {
+		$wialon_session set_property $type_name ""
+	}
+	set svc_result [$pl get_current_event [$svc_params get_text "eventType"] $last_request_time $detalization $filter1 $filter2 "{}" $measure $lang]
+	set svc_error 0	
+	return
+}
+# return history
+set svc_result [$pl get_events_json [$svc_params get_text "eventType"] [$svc_params get_text "ivalType"] [$svc_params get_text "ivalFrom"] [$svc_params get_text "ivalTo"] $detalization $filter1 $filter2 "{}" $measure $lang]
+set svc_error 0
+return

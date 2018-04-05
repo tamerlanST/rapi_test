@@ -1,0 +1,37 @@
+# check events library
+set events_ok [adf_library_loaded "adf_avl_events"]
+if {!$events_ok} {
+	set svc_error 7
+	return
+}
+# validate item id
+if {![$svc_params validate "{itemId: long, eventType: text, ivalType: int, ivalFrom: uint, ivalTo: uint, params: {}}"]} {
+	set svc_error 4
+	return
+}
+# fetch item with desired ACL
+set item [avl_get_item [$svc_params get_text "itemId"] "ADF_ACL_ITEM_EXECUTE_REPORTS"]
+set pl [adf_cast_i_avl_events_plugin $item]
+if {$pl == "NULL"} {
+	set svc_error 7
+	return
+}
+set filter1 0
+if {[$svc_params validate "{filter1: long}"]} {
+	set filter1 [$svc_params get_text "filter1"]
+}
+set filter2 ""
+if {[$svc_params validate "{filter2: text}"]} {
+	set filter2 [$svc_params get_text "filter2"]
+}
+
+# check events type
+if {[$svc_params get_text "ivalType"] <= 0} {
+	set svc_error 4
+	return
+}
+
+set msgs_count [$pl set_custom_data [$svc_params get_object "params"] [$svc_params get_text "eventType"] [$svc_params get_text "ivalType"] [$svc_params get_text "ivalFrom"] [$svc_params get_text "ivalTo"] $filter1 $filter2]
+set svc_result "{msgs: $msgs_count}"
+set svc_error 0
+return

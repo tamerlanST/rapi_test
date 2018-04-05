@@ -1,0 +1,1 @@
+# execute in get_result_photo.sh

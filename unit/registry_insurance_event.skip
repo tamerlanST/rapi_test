@@ -1,0 +1,30 @@
+# validate item id
+if {![$svc_params validate "{type: uint, case_num: uint, description: text, itemId: long}"]} {
+	set svc_error 4
+	return
+}
+# fetch item with desired ACL
+set unit [adf_cast_i_avl_unit [avl_get_item [$svc_params get_text "itemId"] "ADF_ACL_AVL_UNIT_REG_EVENTS"]]
+if {$unit == "NULL"} {
+	set svc_error 7
+	return
+}
+
+set reg [adf_avl_create_unit_event_registrar [adf_get_curr_time] [$svc_params get_text "description"] [adf_get_curr_time]]
+if {$reg == "NULL"} {
+	set svc_error 6
+	return
+}
+
+$reg set_param_int "ins_case_type" [$svc_params get_text "type"]
+if {[$svc_params get_text "type"] == 1} {
+	$reg set_param_int "ins_case_num" [$svc_params get_text "case_num"]
+}
+
+if {[adf_avl_register_unit_message $unit $reg] == 0} {
+	set svc_error 6
+	return
+}
+# setup result
+set svc_result "{}"
+set svc_error 0

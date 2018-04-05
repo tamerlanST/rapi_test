@@ -1,0 +1,5 @@
+.idea
+*.txt
+config.sh
+!template.txt
+!pre_creating.txt

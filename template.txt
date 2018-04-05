@@ -1,0 +1,45 @@
+#!/bin/bash
+. ../lib.sh
+
+#############################################
+# Create driver example
+svc='resource/update_driver'
+params='{"c":"code","ck":0,"ds":"desc","id":0,"n":"'$rname'","p":"","r":0,"f":0,"pwd":"","jp":{},"itemId":'$itemId',"callMode":"create"}'
+resp=`curl -s "$server?svc=$svc&sid=$sid" --data-urlencode "params=$params"`
+	#echo $resp
+	mresp='[1,{"id":1,"n":"bind_unit_driver","c":"code","jp":{},"pwd":"","ds":"desc","p":"","r":0,"f":1,"ck":0,"bu":0,"pu":0,"bt":0,"bs":0,"pos":{"y":0,"x":0}}]'
+	#echo $mresp
+	if [ "$mresp" != "$resp" ];
+		then error "resource/1$rname"
+	fi
+#############################################
+
+# Правильный синтаксис для отправки POST запроса
+curl -s "$server?svc=$method&sid=$sid" --data-urlencode "params=$params"
+
+# Загрузка файла
+curl -sX POST -F "params=$params" -F "image=@1.jpg" "$server?svc=resource/upload_trailer_image&sid=$sid"`
+
+# Использование JQ со вложенностью, возвращает значение ключа usage. Пример из core/get_account_data.
+# https://tproger.ru/translations/how-to-parse-json-string-via-command-line/
+| jq '.services.sms.usage'
+# в массиве одним выражением не получилось
+| jq '.[]' | jq '.id'
+
+# Найти кусок
+grep -i -o '"id":[^"]*,'
+
+# Сменить кусок на кусок, в данном случае - затереть кусок
+sed 's/"id":[^"]*,//g'
+
+# Отрезать кусок со второго по 33й (отсчет с 1)
+cut -c2-33
+
+# Найти значения поля id:<uint> в json
+id=`expr match "$resp" '.*"id":\([0-9]*\).*'`
+
+# правильное сравнение, с возможностью использования логических операторов
+# двойные скобки рулят!!!
+if [[ "$resp" != "$mresp" && "$resp" != "$local_mresp" ]];
+		then error
+fi

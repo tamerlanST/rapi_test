@@ -1,0 +1,14 @@
+#!/bin/bash
+. ../lib.sh
+#skip
+#############################################
+# Create driver example
+svc='user/send_push_message'
+params='{"userId":'$uitemId',"appName":"Xiaomi Mi-4c","message":"push_test","ttl":1,"params":{}}'
+#resp=`curl -s "$server?svc=$svc&sid=$sid" --data-urlencode "params=$params"`
+	#echo $resp
+	mresp='[]'
+	#echo $mresp
+#	if [ "$mresp" != "$resp" ];
+#		then error "resource/1$rname"
+#	fi
